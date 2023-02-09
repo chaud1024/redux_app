@@ -19,4 +19,7 @@ const postSlice = createSlice({
     reducers: {}
 })
 
+// 모든 포스트들을 select한다.
+export const selectAllPosts = (state) => state.posts;
+
 export default postSlice.reducer
