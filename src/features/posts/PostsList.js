@@ -2,6 +2,8 @@ import React from 'react'
 import { useSelector } from "react-redux";
 import { selectAllPosts } from './postsSlice';
 import PostAuthor from './PostAuthor';
+import TimeAgo from './TimeAgo';
+import ReactionButton from './ReactionButton';
 
 const PostsList = () => {
     
@@ -12,13 +14,17 @@ const PostsList = () => {
     // 이렇게 함으로써 state의 구조가 바뀌더라도 그 변경사항을 slice에서 바꿔주기만하면 됨,
     //모든 컴포넌트에 들어가서 변경하지 않아도 됨
 
-    const renderedPosts = posts.map((post) => (
+    const orderedPosts = posts.slice().sort((a,b) => b.date.localeCompare(a.date))
+
+    const renderedPosts = orderedPosts.map((post) => (
         <article key={post.id}>
             <h3>{post.title}</h3>
             <p>{post.content.substring(0, 100)}</p>
             <p className='postCredit'>
               <PostAuthor userId={post.userId} />
+              <TimeAgo timestamp={post.date}/>
             </p>
+            <ReactionButton post={post} />
         </article>
     ))
 
