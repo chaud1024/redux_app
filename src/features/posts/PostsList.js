@@ -1,37 +1,38 @@
 import React from 'react'
-import { useSelector } from "react-redux";
-import { selectAllPosts } from './postsSlice';
-import PostAuthor from './PostAuthor';
-import TimeAgo from './TimeAgo';
-import ReactionButton from './ReactionButton';
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from 'react'
+import { selectAllPosts, getPostsStatus, getPostsError, fetchPosts } from './postsSlice';
+
+import PostsExcerpt from './PostsExcerpt';
 
 const PostsList = () => {
+  
+    const dispatch = useDispatch()
     
-    // state구조가 바뀔 경우를 대비하자
-    // useSelector(state => state.posts)에서 state.posts.post.comment 등등 내부 구조가 복잡해진다면
-    // selector를 slice안에서 만들고 export하는 게 좋음
     const posts = useSelector(selectAllPosts)
-    // 이렇게 함으로써 state의 구조가 바뀌더라도 그 변경사항을 slice에서 바꿔주기만하면 됨,
-    //모든 컴포넌트에 들어가서 변경하지 않아도 됨
+    const postStatus = useSelector(getPostsStatus)
+    const error = useSelector(getPostsError)
 
-    const orderedPosts = posts.slice().sort((a,b) => b.date.localeCompare(a.date))
+    useEffect(() => {
+      if (postStatus === 'idle') {
+        dispatch(fetchPosts())
+      }
+    }, [postStatus, dispatch])
 
-    const renderedPosts = orderedPosts.map((post) => (
-        <article key={post.id}>
-            <h3>{post.title}</h3>
-            <p>{post.content.substring(0, 100)}</p>
-            <p className='postCredit'>
-              <PostAuthor userId={post.userId} />
-              <TimeAgo timestamp={post.date}/>
-            </p>
-            <ReactionButton post={post} />
-        </article>
-    ))
+    let content;
+    if(postStatus === 'loading') {
+      content = <p>"Loading..."</p>
+    } else if (postStatus === 'succeeded') {
+      const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
+      content = orderedPosts.map((post) => <PostsExcerpt key={post.id} post={post} />)
+    } else if (postStatus === 'failed') {
+      content = <p>{error}</p>
+    }
 
   return (
     <section>
         <h2>Posts</h2>
-        {renderedPosts}
+        {content}
     </section>
   )
 }
