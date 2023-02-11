@@ -32,6 +32,25 @@ export const updatePost = createAsyncThunk('posts/updatePost', async (initialPos
     }
 })
 
+export const deletePost = createAsyncThunk('posts/deletePost', async(initialPost) => {
+    const { id } = initialPost;
+    // initialPost데이터에서 id 구조분해할당해 받기
+    try {
+        const response = await axios.delete(`${POSTS_URL}/${id}`)
+        // 어떤 포스트가 delete되는지 알기 위해 id받기
+        // delete method
+        if(response?.status == 200) return initialPost;
+        // delete request 보내도 jsonplaceholder api는 그 삭제하고자하는 id를 보내주지않음
+        // 보통은 REST api는 삭제한 그 포스트의 id를 돌려보내줌 
+        // jsonplaceholder사용 예시에서 필요한 작업임
+        // status 200 이면 initialPost리턴
+        return `${response?.status} : ${response?.statusText}`;
+        // 200이 아닌 경우 해당 메시지 보내기
+    } catch (err) {
+        return err.message;
+    }
+})
+
 const postsSlice = createSlice({
     name: 'posts',
     initialState,
@@ -133,6 +152,21 @@ const postsSlice = createSlice({
                 // 예전 포스트들과 id를 비교해서 id가 같지 않은 것(즉 수정하지 않은 것)을 골라냄
                 state.posts = [...posts, action.payload];
                 // posts의 상태 업데이트 = [필터한 예전 포스트들, 업데이트 한 포스트들]
+            })
+            .addCase(deletePost.fulfilled, (state, action) => {
+                // id여부 체크
+                if(!action.payload?.id) {
+                    console.log('Delete could not complete')
+                    console.log(action.payload)
+                    return;
+                }
+                const { id } = action.payload;
+                // action.payload로부터 id 구조분해할당받음
+                const posts = state.posts.filter(post => post.id !== id)
+                // posts필터: 삭제한 포스트의 id와 같지 않은 것
+                // 즉 삭제하지 않은 포스트들 모으기
+                state.posts = posts;
+                // posts의 상태 업데이트 = 삭제하지 않은 포스트들
             })
     }
 })
