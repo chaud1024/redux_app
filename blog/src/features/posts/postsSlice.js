@@ -21,6 +21,17 @@ export const addNewPost = createAsyncThunk('posts/addNewPost', async (initialPos
     return response.data
 })
 
+export const updatePost = createAsyncThunk('posts/updatePost', async (initialPost) => {
+    const { id } = initialPost;
+    
+    try {
+        const response = axios.put(`${POSTS_URL}/${id}`, initialPost)
+        return response.data
+    } catch (err) {
+        return err.message
+    }
+})
+
 const postsSlice = createSlice({
     name: 'posts',
     initialState,
@@ -107,6 +118,21 @@ const postsSlice = createSlice({
                 }
                 console.log(action.payload)
                 state.posts.push(action.payload)
+            })
+            .addCase(updatePost.fulfilled, (state, action) => {
+                if(!action.payload?.id) {
+                    console.log('Update could not complete')
+                    console.log(action.payload)
+                    return
+                }
+                const { id } = action.payload;
+                // action.payload로부터 id를 구조분해할당함
+                action.payload.date = new Date().toISOString();
+                // 새로운 날짜 정보를 action.payload에 세팅
+                const posts = state.posts.filter(post => post.id !== id);
+                // 예전 포스트들과 id를 비교해서 id가 같지 않은 것(즉 수정하지 않은 것)을 골라냄
+                state.posts = [...posts, action.payload];
+                // posts의 상태 업데이트 = [필터한 예전 포스트들, 업데이트 한 포스트들]
             })
     }
 })
