@@ -28,7 +28,11 @@ export const updatePost = createAsyncThunk('posts/updatePost', async (initialPos
         const response = await axios.put(`${POSTS_URL}/${id}`, initialPost)
         return response.data
     } catch (err) {
-        return err.message
+        // return err.message
+        // 포스트 새로 생성: 가능
+        // 그것을 업데이트 : 불가능
+        // jsonplaceholder "fake" api를 사용하면서 "실제로" create할 수는 없다
+        return initialPost; // only for testing Redux!
     }
 })
 
@@ -130,10 +134,10 @@ const postsSlice = createSlice({
                 action.payload.date = new Date().toISOString();
                 action.payload.reactions = {
                     thumpup: 0,
-                        wow: 0,
-                        heart: 0,
-                        rocket: 0,
-                        coffee: 0
+                    wow: 0,
+                    heart: 0,
+                    rocket: 0,
+                    coffee: 0
                 }
                 console.log(action.payload)
                 state.posts.push(action.payload)
