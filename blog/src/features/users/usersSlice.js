@@ -23,4 +23,9 @@ const usersSlice = createSlice({
 
 export const selectAllUsers = (state) => state.users;
 
+export const selectUserByID = (state, userId) => state.users.find(user => user.id === userId);
+// state와 userId를 가지는 selectUserByID
+// state.user를 call
+// pass in 했던 user.id와 userId가 일치하는 user를 find
+
 export default usersSlice.reducer
