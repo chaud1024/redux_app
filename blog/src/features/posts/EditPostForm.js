@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectPostById, updatePost } from './postsSlice'
+import { selectPostById, updatePost, deletePost } from './postsSlice'
 import { useParams, useNavigate } from 'react-router-dom'
 
 import { selectAllUsers } from '../users/usersSlice'
@@ -63,6 +63,28 @@ const EditPostForm = () => {
         </option>
     ))
 
+    const onDeletePostClicked = () => {
+        try {
+            setRequestStatus('pending')
+            // requestStatus를 pending으로 세팅
+            dispatch(deletePost({ id: post.id })).unwrap()
+            // dispatch 실행 시 deletePost Thunk를 호출
+            // pass in 할 것은 post.id뿐
+
+            setTitle('')
+            setContent('')
+            setUserId('')
+            navigate('/')
+            // delete한 다음 홈 화면으로 이동시킴
+
+        } catch (err) {
+            console.log('Failed to delete the', err)
+        } finally {
+            setRequestStatus('idle')
+            // requestStatus를 idle로 세팅
+        }
+    }
+
   return (
     <section>
         <h2>Edit Post</h2>
@@ -96,6 +118,14 @@ const EditPostForm = () => {
                 disabled={!canSave}
             >
                 Save Post
+            </button>
+
+            <button
+                type="button"
+                onClick={onDeletePostClicked}
+                className="deleteButton"
+            >
+                Delete Post
             </button>
         </form>
     </section>
