@@ -1,12 +1,25 @@
 import AddPostForm from "./features/posts/AddPostForm";
 import PostsList from "./features/posts/PostsList";
+import SinglePostPage from "./features/posts/SinglePostPage";
+import Layout from "./components/Layout";
+import {Routes, Route} from 'react-router-dom'
 
 function App() {
   return (
-    <div className="App">
-      <AddPostForm />
-      <PostsList />
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        {/* root route "/" pass in layout: parent to everything */}
+      
+        <Route index element={<PostsList />} />
+        {/* postList: we want to come up as the home page */}
+
+        <Route path="post">
+          <Route index element={<AddPostForm />} />
+          <Route path=":postId" element={<SinglePostPage />} />
+        </Route>
+
+      </Route>
+    </Routes>
   );
 }
 
