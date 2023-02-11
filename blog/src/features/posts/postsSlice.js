@@ -25,7 +25,7 @@ export const updatePost = createAsyncThunk('posts/updatePost', async (initialPos
     const { id } = initialPost;
     
     try {
-        const response = axios.put(`${POSTS_URL}/${id}`, initialPost)
+        const response = await axios.put(`${POSTS_URL}/${id}`, initialPost)
         return response.data
     } catch (err) {
         return err.message
