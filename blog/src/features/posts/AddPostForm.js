@@ -3,9 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { addNewPost } from "./postsSlice";
 import { selectAllUsers } from "../users/usersSlice";
+import { useNavigate } from "react-router-dom";
 
 const AddPostForm = () => {
     const dispatch = useDispatch()
+
+    const navigate = useNavigate()
 
     // 전역이 아니라, 이 컴포넌트에서만 쓰는 것이기 때문에 useState사용
     const [title, setTitle] = useState('')
@@ -26,9 +29,11 @@ const AddPostForm = () => {
             try {
                 setAddRequestStatus('pending')
                 dispatch(addNewPost({title, body: content, userId})).unwrap()
+
                 setTitle('')
                 setContent('')
                 setUserId('')
+                navigate('/')
             } catch (err) {
                 console.error('Failed to save the post', err)
             } finally {
