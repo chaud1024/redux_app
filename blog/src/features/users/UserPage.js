@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
-import { selectAllPosts } from '../posts/postsSlice'
+import { selectAllPosts, selectPostsByUser } from '../posts/postsSlice'
 import { selectUserByID } from './usersSlice'
 
 const UserPage = () => {
@@ -14,12 +14,16 @@ const UserPage = () => {
     // userId를 Number로 감싸기
     // useSelector(state를 받고 => state와 userId를 받는 selectUserByID 사용)해서 user 정의
 
-    const postsForUser = useSelector(state => {
-        const allPosts = selectAllPosts(state)
-        // selectAllPosts로 allposts 정의
-        return allPosts.filter(post => post.userId === Number(userId))
-        // allPosts를 필터(포스트가 => post.userId === useParams로 불러온 그 userId와 동일하면)그 포스트의 list만 return
-    })
+    // const postsForUser = useSelector(state => {
+    //     const allPosts = selectAllPosts(state)
+    //     // selectAllPosts로 allposts 정의
+    //     return allPosts.filter(post => post.userId === Number(userId))
+    //     // allPosts를 필터(포스트가 => post.userId === useParams로 불러온 그 userId와 동일하면)그 포스트의 list만 return
+    // })
+
+    const postsForUser = useSelector(state => selectPostsByUser(state, Number(userId)))
+    // useSelector, passing in the state
+    // using memoized selector: selectPostsByUser
 
     const postTitles = postsForUser.map((post) => (
         <li key={post.id}>
