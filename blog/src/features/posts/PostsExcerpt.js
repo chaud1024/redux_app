@@ -3,9 +3,13 @@ import PostAuthor from './PostAuthor';
 import TimeAgo from './TimeAgo';
 import ReactionButton from './ReactionButton';
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux';
+import { selectPostById } from './postsSlice';
 
-// change const to let
-let PostsExcerpt = ({ post }) => {
+const PostsExcerpt = ({ postId }) => {
+
+  const post = useSelector(state => selectPostById(state, postId))
+  
   return (
     <article>
         <h3>{post.title}</h3>
@@ -20,6 +24,4 @@ let PostsExcerpt = ({ post }) => {
   )
 }
 
-PostsExcerpt = React.memo(PostsExcerpt)
-// it allow this component to not re-render if the prop that it receives({post}) has not changed 
 export default PostsExcerpt
