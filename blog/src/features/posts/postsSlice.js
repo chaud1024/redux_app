@@ -1,16 +1,21 @@
-import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, createSelector, createEntityAdapter } from "@reduxjs/toolkit";
 import axios from "axios";
 import {sub} from 'date-fns'
 
 const POSTS_URL='https://jsonplaceholder.typicode.com/posts'
 
+const postsAdapter = createEntityAdapter({
+    sortComparer: (a, b) => b.date.localeCompare(a.date)
+})
 
-const initialState = {
-    posts: [],
+const initialState = postsAdapter.getInitialState({
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed',
     error: null,
     count: 0
-}
+})
+// get rid of the empty array that was posts
+// cuz our initialState will already reutrn that normalized object
+// we have an array of the item ids, entities object that will actually have all the items
 
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     const response = await axios.get(POSTS_URL)
@@ -62,7 +67,11 @@ const postsSlice = createSlice({
     reducers: {
         reactionAdded(state, action) {
             const { postId, reaction } = action.payload
-            const existingPost = state.posts.find(post => post.id === postId)
+            // const existingPost = state.posts.find(post => post.id === postId)
+            const existingPost = state.entities[postId]
+            // state.enttities, we're passing in that postId
+            // cuz we're using this as an object lookup 
+            // entities is an object, we're passing in the id to look up that specific post 
             if (existingPost) {
                 existingPost.reactions[reaction]++
             }
@@ -92,7 +101,10 @@ const postsSlice = createSlice({
                     return post;
                 })
                 // Add any fetched posts to the array
-                state.posts = state.posts.concat(loadedPosts)
+                // state.posts = state.posts.concat(loadedPosts)
+                postsAdapter.upsertMany(state, loadedPosts)
+                // postsAdapter has its own crud methods
+                // upsertMany, we're passing in state, loadedPost
             })
             .addCase(fetchPosts.rejected, (state, action) => {
                 state.status = 'failed'
@@ -121,7 +133,9 @@ const postsSlice = createSlice({
                     coffee: 0
                 }
                 console.log(action.payload)
-                state.posts.push(action.payload)
+                // state.posts.push(action.payload)
+                postsAdapter.addOne(state, action.payload)
+                // addOne, pass in state, action.payload(which is a new post)
             })
             .addCase(updatePost.fulfilled, (state, action) => {
                 if(!action.payload?.id) {
@@ -129,14 +143,15 @@ const postsSlice = createSlice({
                     console.log(action.payload)
                     return
                 }
-                const { id } = action.payload;
+                // const { id } = action.payload;
                 // action.payload로부터 id를 구조분해할당함
                 action.payload.date = new Date().toISOString();
                 // 새로운 날짜 정보를 action.payload에 세팅
-                const posts = state.posts.filter(post => post.id !== id);
+                // const posts = state.posts.filter(post => post.id !== id);
                 // 예전 포스트들과 id를 비교해서 id가 같지 않은 것(즉 수정하지 않은 것)을 골라냄
-                state.posts = [...posts, action.payload];
+                // state.posts = [...posts, action.payload];
                 // posts의 상태 업데이트 = [필터한 예전 포스트들, 업데이트 한 포스트들]
+                postsAdapter.upsertOne(state, action.payload)
             })
             .addCase(deletePost.fulfilled, (state, action) => {
                 // id여부 체크
@@ -147,21 +162,30 @@ const postsSlice = createSlice({
                 }
                 const { id } = action.payload;
                 // action.payload로부터 id 구조분해할당받음
-                const posts = state.posts.filter(post => post.id !== id)
+                // const posts = state.posts.filter(post => post.id !== id)
                 // posts필터: 삭제한 포스트의 id와 같지 않은 것
                 // 즉 삭제하지 않은 포스트들 모으기
-                state.posts = posts;
+                // state.posts = posts;
                 // posts의 상태 업데이트 = 삭제하지 않은 포스트들
+                postsAdapter.removeOne(state, id)
             })
     }
 })
 
-export const selectAllPosts = (state) => state.posts.posts;
+// export const selectAllPosts = (state) => state.posts.posts;
+
+export const {
+    selectAll: selectAllPosts,
+    selectById: selectPostById,
+    selectIds: selectPostIds
+    // pass in a selector that returns the posts slice of state
+} = postsAdapter.getSelectors(state => state.posts)
+
 export const getPostsStatus = (state) => state.posts.status;
 export const getPostsError = (state) => state.posts.error;
 export const getCount = (state) => state.posts.count;
 
-export const selectPostById = (state, postId) => state.posts.posts.find(post => post.id === postId)
+// export const selectPostById = (state, postId) => state.posts.posts.find(post => post.id === postId)
 
 // createSelector accepts one or more input functions
 // []: dependencies. the values returned from these functions are the dependencies
